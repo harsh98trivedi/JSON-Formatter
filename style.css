@@ -1,0 +1,39 @@
+ body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0f172a; /* slate-900 */
+      min-height: 100vh;
+    }
+    textarea, pre {
+      font-family: 'Fira Code', monospace;
+    }
+
+    /* Works in Chrome, Edge, Safari */
+#json-input::-webkit-scrollbar,
+#json-output::-webkit-scrollbar,:-webkit-scrollbar {
+  width: 0.5rem; /* slim width */
+  height: 0.5rem; /* horizontal scrollbar height */
+}
+
+#json-input::-webkit-scrollbar-track,
+#json-output::-webkit-scrollbar-track {
+  background: transparent; /* remove default gray track */
+}
+
+#json-input::-webkit-scrollbar-thumb,
+#json-output::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.4); /* slate-400/40 */
+  border-radius: 1.5rem;
+  transition: background-color 0.25s ease;
+}
+
+#json-input::-webkit-scrollbar-thumb:hover,
+#json-output::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(148, 163, 184, 0.7); /* darker on hover */
+}
+
+/* Firefox scrollbar */
+#json-input,
+#json-output {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+}

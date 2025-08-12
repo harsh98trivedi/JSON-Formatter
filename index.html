@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1 user-scalable=no, shrink-to-fit=no">
+  <title>JSON Formatter</title>
+
+  <!-- Tailwind via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin />
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="shortcut icon" href="logo.png" type="image/x-icon">
+
+  <meta name="title" content="JSON Formatter">
+<meta name="description" content="A clean, responsive, and modern JSON Formatter. Paste unformatted JSON, format it with syntax highlighting, copy the result, or clear the editor.">
+<meta name="keywords" content="json formatter, formatter, json, syntax">
+<meta name="image" content="https://harsh98trivedi.github.io/JSON-Formatter/meta.jpg">
+
+<!-- Open Graph general (Facebook, Pinterest) -->
+<meta name="og:title" content="JSON Formatter">
+<meta name="og:description" content="A clean, responsive, and modern JSON Formatter. Paste unformatted JSON, format it with syntax highlighting, copy the result, or clear the editor.">
+<meta name="og:image" content="https://harsh98trivedi.github.io/JSON-Formatter/meta.jpg">
+<meta name="og:image:alt" content="JSON Formatter">
+<meta name="og:site_name" content="JSON Formatter">
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="JSON Formatter">
+<meta name="twitter:description" content="A clean, responsive, and modern JSON Formatter. Paste unformatted JSON, format it with syntax highlighting, copy the result, or clear the editor.">
+<meta name="twitter:image:src" content="https://harsh98trivedi.github.io/JSON-Formatter/meta.jpg">
+
+<!-- Search Engine -->
+<meta name="description" content="A clean, responsive, and modern JSON Formatter. Paste unformatted JSON, format it with syntax highlighting, copy the result, or clear the editor.">
+<meta name="image" content="https://harsh98trivedi.github.io/JSON-Formatter/meta.jpg">
+
+<!-- Schema.org for Google -->
+<meta itemprop="name" content="JSON Formatter">
+<meta itemprop="description" content="A clean, responsive, and modern JSON Formatter. Paste unformatted JSON, format it with syntax highlighting, copy the result, or clear the editor.">
+<meta itemprop="image" content="https://harsh98trivedi.github.io/JSON-Formatter/meta.jpg">
+
+<meta name="revisit-after" content="30 days">
+
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-45C37D3GB5"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+
+gtag('config', 'G-45C37D3GB5');
+</script>
+</head>
+<body class="flex items-center justify-center px-4 py-8  select-auto">
+
+  <!-- Main container -->
+  <main class="w-full flex flex-col items-center gap-6 max-w-5xl">
+
+    <!-- Title -->
+    <header class="text-center">
+      <h1 class="text-cyan-400 text-3xl md:text-4xl font-bold tracking-tight select-none">JSON Formatter</h1>
+    </header>
+
+    <!-- Input Area -->
+    <section class="w-full flex flex-col items-center gap-2">
+      <label for="json-input" class="sr-only">Unformatted JSON</label>
+      <textarea id="json-input" placeholder="Paste your JSON here..."
+        class="w-full min-[1024px]:max-w-[90vw] md:min-w-[50vw] max-w-[90vw] sm:max-w-[95vw] min-h-[180px] max-h-[400px]
+        bg-slate-800 text-cyan-100 border border-slate-700 rounded-lg px-4 py-3 resize-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
+      ></textarea>
+    </section>
+
+    <!-- Buttons -->
+    <div class="flex flex-wrap gap-3 justify-center select-none">
+      <button id="format-btn"
+        class="bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-semibold px-6 py-2 rounded-lg transition-colors"
+      >Format JSON</button>
+
+      <button id="clear-btn"
+        class="bg-slate-700 hover:bg-slate-600 text-gray-200 font-semibold px-6 py-2 rounded-lg transition-colors"
+      >Clear</button>
+
+      <button id="copy-btn"
+        class="bg-slate-800 hover:bg-slate-700 border border-cyan-500 text-cyan-400 font-semibold px-6 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled
+      >Copy Output</button>
+    </div>
+
+    <!-- Output -->
+    <section class="w-full flex flex-col items-center gap-2">
+      <label for="json-output" class="sr-only">Formatted JSON</label>
+      <pre id="json-output"
+        class="select-auto w-full min-[1024px]:max-w-[90vw] md:min-w-[50vw] max-w-[90vw] sm:max-w-[95vw] min-h-[180px] max-h-[400px]
+        bg-slate-800 text-gray-100 border border-slate-700 rounded-lg px-4 py-3 overflow-x-auto"
+      ></pre>
+    </section>
+
+    <!-- Error Toast -->
+    <div id="error-message"
+      class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-md text-sm opacity-0 pointer-events-none transition"
+    ></div>
+    <footer class="w-full text-center text-base text-gray-400 my-2.5 select-none">
+      Made with <i class="fa-solid fa-heart" aria-label="love" style="color:#c00; vertical-align: middle;"></i> by <a href="https://harsh98trivedi.github.io" class="underline" target="_blank" rel="noopener noreferrer">Harsh Trivedi</a>
+    </footer>
+  </main>
+
+  <!-- GSAP -->
+  <script src="https://unpkg.com/gsap@3.12.5/dist/gsap.min.js"></script>
+
+  <script src="script.js"></script>
+
+</body>
+</html>
