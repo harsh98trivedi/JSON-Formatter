@@ -8,6 +8,7 @@
   const btnCancel = $("btn-cancel");
   const btnCancelOverlay = $("btn-cancel-overlay");
   const btnCopy = $("btn-copy");
+  const btnDownload = $("btn-download"); // ADDED: download button
   const btnFile = $("btn-file");
   const fileInput = $("file-input");
   const btnUrl = $("btn-url");
@@ -48,6 +49,7 @@
       const { formatted, totalLines, ms } = e.data;
       prettyText = formatted;
       btnCopy.disabled = false;
+      if (btnDownload) btnDownload.disabled = false; // ADDED: enable download when done
       showProgress(false);
       busy = false;
       info(`Done in ${ms}ms • ${totalLines.toLocaleString()} lines`);
@@ -86,6 +88,20 @@
     }
   });
 
+  // ADDED: Download handler
+  btnDownload?.addEventListener("click", () => {
+    const data = prettyText && prettyText.length ? prettyText : input.value;
+    if (!data) {
+      error("Nothing to download yet.");
+      return;
+    }
+    const name = suggestJsonFilename(
+      sourceInfo?.title || sourceInfo?.textContent || "download.json"
+    );
+    downloadTextAsFile(data, name);
+    flash(btnDownload, "✅ Saved!", "⬇️ Download JSON");
+  });
+
   btnFile.addEventListener("click", () => fileInput.click());
   fileInput.addEventListener("change", onFilePicked);
 
@@ -106,6 +122,7 @@
     output.textContent = "";
     prettyText = "";
     btnCopy.disabled = true;
+    if (btnDownload) btnDownload.disabled = true; // ADDED: keep states in sync
     sourceInfo.textContent = "";
     sourceInfo.title = "";
     updateStats();
@@ -127,6 +144,7 @@
     busy = true;
     jobId += 1;
     btnCopy.disabled = true;
+    if (btnDownload) btnDownload.disabled = true; // ADDED: disable while processing
     output.innerHTML = "";
     showProgress(true, 8, "Starting…");
     worker.postMessage({ type: "format", jobId, text });
@@ -138,14 +156,12 @@
     try {
       const text = await f.text();
       input.value = text;
-
       const hint =
         f.webkitRelativePath && f.webkitRelativePath.length > 0
           ? f.webkitRelativePath
           : f.name;
       const sizeStr = formatBytes(f.size);
       const dateStr = new Date(f.lastModified).toLocaleString();
-
       sourceInfo.title = hint;
       sourceInfo.textContent = `File: ${hint} • ${sizeStr} • ${dateStr}`;
       updateStats();
@@ -157,21 +173,16 @@
   async function loadFromUrl() {
     const url = urlInput.value.trim();
     if (!url) return;
-
     modal.classList.add("hidden");
     try {
       showProgress(true, 5, "Fetching…");
       const res = await fetch(url, { credentials: "omit" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
       const text = await res.text();
       input.value = text;
-
-      const safeHref = encodeURI(url);
       const safeText = escapeHtml(url);
-      sourceInfo.innerHTML = `URL: <a href="${safeHref}" target="_blank" rel="noopener noreferrer">${safeText}</a>`;
+      sourceInfo.innerHTML = `URL: ${safeText}`;
       sourceInfo.title = url;
-
       updateStats();
       showProgress(false);
     } catch (e) {
@@ -182,12 +193,13 @@
 
   function escapeHtml(str) {
     return str
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#39;");
+      .replaceAll("&amp;", "&amp;")
+      .replaceAll("&lt;", "&lt;")
+      .replaceAll("&gt;", "&gt;")
+      .replaceAll('"', '"')
+      .replaceAll("'", "'");
   }
+
   function formatBytes(bytes) {
     if (bytes === 0) return "0 B";
     const k = 1024,
@@ -195,6 +207,7 @@
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return `${(bytes / Math.pow(k, i)).toFixed(i ? 1 : 0)} ${sizes[i]}`;
   }
+
   function updateStats() {
     const len = input.value.length;
     if (!len) {
@@ -205,6 +218,7 @@
     const lines = input.value.split("\n").length;
     stats.textContent = `${kb}KB • ${len.toLocaleString()} chars • ${lines.toLocaleString()} lines`;
   }
+
   function showProgress(on, percent = 0, msg = "", extra = "") {
     progress.classList.toggle("hidden", !on);
     btnCancel.classList.toggle("hidden", !on);
@@ -213,25 +227,74 @@
     stage.textContent = msg || "Working…";
     detail.textContent = extra || "";
   }
+
   function error(msg) {
     toast.textContent = msg;
     toast.style.background = "#b91c1c";
     pop();
   }
+
   function info(msg) {
     toast.textContent = msg;
     toast.style.background = "#0f766e";
     pop(2200);
   }
+
   function pop(ms = 3200) {
     toast.style.opacity = "1";
     setTimeout(() => {
       toast.style.opacity = "0";
     }, ms);
   }
+
   function flash(btn, tmp, orig) {
     const o = btn.textContent;
     btn.textContent = tmp;
     setTimeout(() => (btn.textContent = orig || o), 1200);
+  }
+
+  // ADDED: filename + download helpers
+  function suggestJsonFilename(hint) {
+    try {
+      if (hint && hint.startsWith("http")) {
+        const u = new URL(hint);
+        const base = (u.pathname.split("/").pop() || "download.json").replace(
+          /[?#].*$/,
+          ""
+        );
+        return ensureJsonExt(base);
+      }
+    } catch {}
+    if (hint && (hint.includes("/") || hint.includes("\\"))) {
+      const base = hint.split(/[/\\]/).pop() || "download.json";
+      return ensureJsonExt(base);
+    }
+    if (hint && hint.includes(":")) {
+      const name = hint
+        .split(":")
+        .slice(1)
+        .join(":")
+        .trim()
+        .split("•")[0]
+        .trim();
+      if (name) return ensureJsonExt(name);
+    }
+    return ensureJsonExt("download.json");
+  }
+  function ensureJsonExt(name) {
+    return name.toLowerCase().endsWith(".json")
+      ? name
+      : name.replace(/\.*$/, "") + ".json";
+  }
+  function downloadTextAsFile(text, filename) {
+    const blob = new Blob([text], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename || "download.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 })();
